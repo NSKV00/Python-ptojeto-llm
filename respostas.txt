@@ -1,0 +1,43 @@
+Respostas - Exercícios (breve)
+
+1. Principais diretórios:
+- `chat/`: código da app de chat (models, views, forms, templates).
+- `core/`: configurações do Django (settings, urls, wsgi).
+- `migrations/`: histórico de migrações do app `chat`.
+
+2. Modelo Conversation: 4 campos — `user` (ForeignKey), `title` (CharField), `created_at` (DateTimeField, auto_now_add), `updated_at` (DateTimeField, auto_now).
+
+3. Opções de `role` em Message: `system`, `user`, `assistant` — respectivamente: mensagem do sistema/configuração, mensagem do usuário, resposta do assistente.
+
+4. Relacionamento: muitos-para-um (cada `Message` tem ForeignKey para `Conversation`; uma conversa pode ter muitas mensagens).
+
+5. ConversationCreateForm: 1 campo visível (`title`). `title` não é obrigatório (`blank=True`); se vazio, a view define "Nova conversa".
+
+6. MessageCreateForm: expõe só `content`; `role` não é editável pelo usuário — a view seta `msg.role = Message.Role.USER` ao salvar.
+
+7. Rotas do app `chat`:
+- `""` → `conversation_list` (name="conversation_list")
+- `"new/"` → `conversation_create` (name="conversation_create")
+- `"<int:conversation_id>/"` → `conversation_detail` (name="conversation_detail")
+- `"<int:conversation_id>/send/"` → `message_create` (name="message_create")
+
+8. `conversation_list` retorna apenas conversas do usuário logado: filtra `Conversation.objects.filter(user=request.user)` em `app/chat/views.py` (função `conversation_list`, linha inicial).
+
+9. `@require_POST` em `message_create`: garante criação via POST; acesso por GET não criaria a mensagem e retornaria erro/405.
+
+10. Serviços no `docker-compose.yml`: `web` (Django) e `db` (MySQL).
+
+11. Health check: definido no serviço `db` com `mysqladmin ping ...`; retorna sucesso quando o MySQL está pronto.
+
+12. Variáveis MySQL (exemplos): `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD` (e `MYSQL_ROOT_PASSWORD`).
+
+13. Comando de migration dentro do container `web`:
+```
+docker compose exec web python manage.py makemigrations chat
+```
+
+14. URL do Django admin local: `http://localhost:8000/admin/` (quando a aplicação estiver rodando).
+
+15. `created_at` vs `updated_at`: `created_at` é definido apenas na criação (`auto_now_add`); `updated_at` é atualizado em cada salvamento (`auto_now`).
+
+Fim.
